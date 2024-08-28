@@ -10,7 +10,7 @@ class TestCveRepo:
 
     @pytest.mark.order(1)
     async def test_create(self, session):
-        cve = schemas.PostCve(raw_info={'test': 'Test'}, cve_id='test',
+        cve = schemas.PostCve(raw_info={'test': 'Test'}, cve_id='CVE-1234-1234',
                               description='test',
                               title='test',
                               problem_types='CWE-78', published_date=datetime.datetime(2017, 11, 2, 16, 0),
@@ -29,7 +29,7 @@ class TestCveRepo:
     @pytest.mark.order(3)
     async def test_get_one_by_cve_id(self, session):
         await self.test_create(session)
-        test_id = 'test'
+        test_id = 'CVE-1234-1234'
         cve = await crud.CveRepository.get_one_by_cve_id(session, test_id)
         print(cve)
         assert cve is not None
@@ -49,3 +49,13 @@ class TestCveRepo:
         cve = await crud.CveRepository.delete_one_by_id(session, test_id)
         print(cve)
         assert cve is not None
+
+    @pytest.mark.order(6)
+    async def test_failed_create(self, session):
+        cve = dict(description='test',
+                              title='test',
+                              problem_types='CWE-78', published_date=datetime.datetime(2017, 11, 2, 16, 0),
+                              last_modified_date=datetime.datetime(2024, 8, 5, 18, 28, 16, 743000))
+        db_res = await crud.CveRepository.create_many(session, cve)
+        print(db_res)
+        assert db_res is None

@@ -27,7 +27,7 @@ async def create():
         await conn.run_sync(db.Base.metadata.drop_all)
 
 
-@pytest_asyncio.fixture()
+@pytest_asyncio.fixture
 async def session(create):
     async with db.make_session(engine) as session:
         yield session

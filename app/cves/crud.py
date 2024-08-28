@@ -40,8 +40,7 @@ class CveRepository:
             result = await session.execute(stmt)
             await session.commit()
             results = result.scalars().all()
-
-            await asyncio.gather(*[asyncio.create_task(session.refresh(res)) for res in results])
+            await session.execute(select(models.CveModel).execution_options(populate_existing=True))
             return results
         except Exception as e:
             logging.error(e)

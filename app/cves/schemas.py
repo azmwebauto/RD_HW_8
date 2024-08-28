@@ -1,12 +1,12 @@
-from datetime import datetime, tzinfo, timedelta, UTC
+from dataclasses import Field
+from datetime import datetime
 
-from pydantic import BaseModel, field_serializer
-from pydantic_core._pydantic_core import TzInfo
+from pydantic import BaseModel, field_serializer, Field, field_validator, validator
 
 
 class PostCve(BaseModel):
     raw_info: dict
-    cve_id: str
+    cve_id: str = Field(min_length=1)
     description: str | None = None
     title: str | None = None
     problem_types: str | None = None
@@ -15,6 +15,11 @@ class PostCve(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @field_validator('cve_id')
+    def cve_is_valid(cls, v):
+        assert 'CVE' in v
+        return v
 
     @field_serializer('published_date')
     def serialize_published_date(self, value: datetime) -> datetime:
@@ -33,4 +38,8 @@ class ReadCve(PostCve):
 
 
 class PostManyCves(BaseModel):
-    cves: list[PostCve]
+    cves: list[PostCve] = Field(max_items=1000)
+
+
+class DeleteResult(BaseModel):
+    result: int

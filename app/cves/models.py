@@ -26,7 +26,7 @@ class CveModel(Base):
 
     async def to_dict(self):
         return {
-            # 'id': await self.id,
+            'id': await self.awaitable_attrs.id,
             'cve_id': self.cve_id,
             'description': self.description,
             'title': self.title,

@@ -52,8 +52,8 @@ async def get_all(
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_cves(cves: schemas.PostManyCves, db_session: AsyncSession = Depends(get_db)) -> list[schemas.ReadCve]:
+async def create_cves(cves: schemas.PostManyCves, db_session: AsyncSession = Depends(get_db)) -> schemas.PostManyCves:
     cves_: list[dict] = [i.model_dump() for i in cves.cves]
-    res: Sequence[models.CveModel] = await crud.CveRepository.create_many(db_session, cves_)
+    cves_: Sequence[models.CveModel] = await crud.CveRepository.create_many(db_session, cves_)
 
-    return [await i.to_dict() for i in res]
+    return schemas.PostManyCves(cves=cves_)
