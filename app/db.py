@@ -13,19 +13,19 @@ from sqlalchemy.orm import DeclarativeBase
 from app import config
 
 
-def create_engine() -> AsyncEngine:
+def create_engine(db_url) -> AsyncEngine:
     return create_async_engine(
-        config.DB_URI,
+        db_url,
         # echo=True,
     )
 
 
-ENGINE = create_engine()
+ENGINE = create_engine(config.DB_URI)
 
 
 @asynccontextmanager
-async def make_session() -> AsyncGenerator[AsyncSession, None]:
-    session_factory = async_sessionmaker(ENGINE)
+async def make_session(engine=ENGINE) -> AsyncGenerator[AsyncSession, None]:
+    session_factory = async_sessionmaker(engine)
     async with session_factory() as session:
         yield session
 

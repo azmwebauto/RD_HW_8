@@ -1,9 +1,9 @@
-from typing import Annotated
+from typing import Annotated, Sequence
 
 from fastapi import APIRouter, Path, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cves import crud
+from app.cves import crud, models
 from app.cves import schemas
 from app.deps import get_db
 
@@ -43,6 +43,7 @@ async def get_all(
 
 @router.post("/")
 async def create_cves(cves: schemas.PostManyCves, db_session: AsyncSession = Depends(get_db)) -> list[schemas.ReadCve]:
-    res = await crud.CveRepository.create_many(db_session, [i.model_dump() for i in cves.cves])
+    cves_: list[dict] = [i.model_dump() for i in cves.cves]
+    res: Sequence[models.CveModel] = await crud.CveRepository.create_many(db_session, cves_)
 
-    return [i.to_dict() for i in scalars_]
+    return [await i.to_dict() for i in res]

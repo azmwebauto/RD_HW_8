@@ -18,6 +18,6 @@ POSTGRES_DB = os.environ.get('POSTGRES_DB')
 POSTGRES_HOST = os.environ.get('POSTGRES_HOST')
 POSTGRES_PORT = os.environ.get('POSTGRES_PORT')
 
-DB_URI = f'postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/app'
+DB_URI = f'postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

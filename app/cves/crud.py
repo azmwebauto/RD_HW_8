@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Mapping, Sequence
 
@@ -26,12 +27,22 @@ class CveRepository:
         return cve_instance.scalar_one_or_none()
 
     @staticmethod
+    async def get_one_by_cve_id(session: AsyncSession, cve_id: str) -> models.CveModel | None:
+        statement = select(models.CveModel).where(models.CveModel.cve_id == cve_id)
+        cve_instance = await session.execute(statement)
+        result = cve_instance.scalar_one_or_none()
+        return result
+
+    @staticmethod
     async def create_many(session: AsyncSession, cves: Sequence[Mapping]) -> Sequence[models.CveModel]:
         stmt = insert(models.CveModel).returning(models.CveModel).values(cves)
         try:
             result = await session.execute(stmt)
             await session.commit()
-            return result.scalars().all()
+            results = result.scalars().all()
+
+            await asyncio.gather(*[asyncio.create_task(session.refresh(res)) for res in results])
+            return results
         except Exception as e:
             logging.error(e)
             await session.rollback()

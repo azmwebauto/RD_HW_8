@@ -24,9 +24,9 @@ class CveModel(Base):
     def __repr__(self):
         return f'<CveModel(cve_id={self.cve_id}, published_date={self.published_date})>'
 
-    def to_dict(self):
+    async def to_dict(self):
         return {
-            'id': self.id,
+            # 'id': await self.id,
             'cve_id': self.cve_id,
             'description': self.description,
             'title': self.title,
