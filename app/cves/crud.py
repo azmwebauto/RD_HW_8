@@ -11,11 +11,11 @@ from app.cves import models
 class CveRepository:
     @staticmethod
     async def delete_one_by_id(session: AsyncSession, id_: int):
-        statement = delete(models.CveModel).where(models.CveModel.id == id_)
+        statement = delete(models.CveModel).where(models.CveModel.id == id_).returning(models.CveModel.id)
         try:
             cursor_result = await session.execute(statement)
             await session.commit()
-            return cursor_result
+            return cursor_result.scalars().first()
         except Exception as e:
             logging.error(e)
             await session.rollback()

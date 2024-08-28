@@ -33,3 +33,19 @@ class TestCveRepo:
         cve = await crud.CveRepository.get_one_by_cve_id(session, test_id)
         print(cve)
         assert cve is not None
+
+    @pytest.mark.order(4)
+    async def test_get_one_by_id(self, session):
+        await self.test_create(session)
+        test_id = 1
+        cve = await crud.CveRepository.get_one_by_id(session, test_id)
+        print(cve)
+        assert cve is not None
+
+    @pytest.mark.order(5)
+    async def test_delete_one_by_id(self, session):
+        await self.test_create(session)
+        test_id = 1
+        cve = await crud.CveRepository.delete_one_by_id(session, test_id)
+        print(cve)
+        assert cve is not None

@@ -1,7 +1,7 @@
 import pytest
 
 from app.cves import schemas
-from app.cves.router import get_one_by_id, get_all, create_cves, delete_one_by_id
+from app.cves.router import get_one_by_id, get_all, create_cves, delete_one_by_id, get_one_by_cve_id
 
 
 @pytest.mark.asyncio
@@ -32,7 +32,7 @@ class TestCveRouter:
         await self.test_create_one(session)
         result = await get_all(db_session=session)
         print(result)
-        assert result is not None
+        assert result != []
 
     @pytest.mark.order(3)
     async def test_router_get_cve_by_id(self, session):
@@ -41,3 +41,21 @@ class TestCveRouter:
         result = await get_one_by_id(db_session=session, id_=test_id)
         print(result)
         assert result is not None
+
+    @pytest.mark.order(4)
+    async def test_router_get_cve_by_cve_id(self, session):
+        await self.test_create_one(session)
+        test_id = 'test'
+        result = await get_one_by_cve_id(db_session=session, id_=test_id)
+        print(result)
+        assert result is not None
+
+    @pytest.mark.order(5)
+    async def test_delete_one(self, session):
+        await self.test_create_one(session)
+        test_id = 1
+        result = await delete_one_by_id(db_session=session, id_=test_id)
+        print(result)
+        result = await get_all(db_session=session)
+        print(result)
+        assert result == []
