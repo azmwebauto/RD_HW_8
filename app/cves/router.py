@@ -1,6 +1,8 @@
+import logging
 from typing import Annotated, Sequence
 
-from fastapi import APIRouter, Path, Depends, Query
+import sqlalchemy
+from fastapi import APIRouter, Path, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -18,16 +20,20 @@ async def get_one_by_id(
 ) -> schemas.ReadCve:
     print(id_)
     result = await crud.CveRepository.get_one_by_id(db_session, id_)
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     return schemas.ReadCve.model_validate(result)
 
 
-@router.get("/cve_id/{id}")
+@router.get("/cve_id/{cve_id}")
 async def get_one_by_cve_id(
-        id_: str = Path(..., title="The ID of the CVE", gt=0, alias='id'),
+        cve_id: str = Path(..., title="The ID of the CVE", alias='cve_id'),
         db_session: AsyncSession = Depends(get_db)
 ) -> schemas.ReadCve:
-    print(id_)
-    result = await crud.CveRepository.get_one_by_cve_id(db_session, id_)
+    print(cve_id)
+    result = await crud.CveRepository.get_one_by_cve_id(db_session, cve_id)
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     return schemas.ReadCve.model_validate(result)
 
 
@@ -38,6 +44,8 @@ async def delete_one_by_id(
 ):
     print(id_)
     result = await crud.CveRepository.delete_one_by_id(db_session, id_)
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     return {'result': result}
 
 
@@ -53,7 +61,16 @@ async def get_all(
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_cves(cves: schemas.PostManyCves, db_session: AsyncSession = Depends(get_db)) -> schemas.PostManyCves:
+    print(cves)
     cves_: list[dict] = [i.model_dump() for i in cves.cves]
-    cves_: Sequence[models.CveModel] = await crud.CveRepository.create_many(db_session, cves_)
-
-    return schemas.PostManyCves(cves=cves_)
+    try:
+        cves_: Sequence[models.CveModel] = await crud.CveRepository.create_many(db_session, cves_)
+        return schemas.PostManyCves(cves=cves_)
+    except sqlalchemy.exc.IntegrityError as e:
+        logging.error(e)
+        await db_session.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='CVE already exists')
+    except Exception as e:
+        logging.exception(e)
+        await db_session.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

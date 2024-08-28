@@ -1,6 +1,9 @@
 import datetime
 
 import pytest
+import sqlalchemy
+from psycopg2 import IntegrityError
+from pydantic_core._pydantic_core import ValidationError
 
 from app.cves import crud, schemas
 
@@ -15,7 +18,7 @@ class TestCveRepo:
                               title='test',
                               problem_types='CWE-78', published_date=datetime.datetime(2017, 11, 2, 16, 0),
                               last_modified_date=datetime.datetime(2024, 8, 5, 18, 28, 16, 743000))
-        db_res = await crud.CveRepository.create_many(session, cve.model_dump())
+        db_res = await crud.CveRepository.create_many(session, [cve.model_dump()])
         print(db_res)
         assert len(db_res) > 0
 
@@ -56,6 +59,18 @@ class TestCveRepo:
                               title='test',
                               problem_types='CWE-78', published_date=datetime.datetime(2017, 11, 2, 16, 0),
                               last_modified_date=datetime.datetime(2024, 8, 5, 18, 28, 16, 743000))
-        db_res = await crud.CveRepository.create_many(session, cve)
-        print(db_res)
-        assert db_res is None
+        try:
+            db_res = await crud.CveRepository.create_many(session, [cve])
+            print(db_res)
+        except sqlalchemy.exc.IntegrityError as e:
+            assert type(e) is sqlalchemy.exc.IntegrityError
+
+    async def test_schema(self):
+        cve = dict(description='test', cve_id='CVE', raw_info={},
+                              title='test',
+                              problem_types='CVE-78', published_date=datetime.datetime(2017, 11, 2, 16, 0),
+                              last_modified_date=datetime.datetime(2024, 8, 5, 18, 28, 16, 743000))
+        try:
+            schema = schemas.PostCve(**cve)
+        except ValidationError as e:
+            assert type(e) is ValidationError

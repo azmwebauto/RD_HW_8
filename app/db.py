@@ -25,7 +25,7 @@ ENGINE = create_engine(config.DB_URI)
 
 @asynccontextmanager
 async def make_session(engine=ENGINE) -> AsyncGenerator[AsyncSession, None]:
-    session_factory = async_sessionmaker(engine)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with session_factory() as session:
         yield session
 

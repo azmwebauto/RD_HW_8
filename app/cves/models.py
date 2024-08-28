@@ -21,7 +21,7 @@ class CveModel(Base):
 
     raw_info: Mapped[dict] = mapped_column('raw_info', JSONB)
 
-    def __repr__(self):
+    def __str__(self):
         return f'<CveModel(cve_id={self.cve_id}, published_date={self.published_date})>'
 
     async def to_dict(self):

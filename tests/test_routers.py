@@ -47,7 +47,7 @@ class TestCveRouter:
     async def test_router_get_cve_by_cve_id(self, session):
         await self.test_create_one(session)
         test_id = 'CVE-1234-1234'
-        result = await get_one_by_cve_id(db_session=session, id_=test_id)
+        result = await get_one_by_cve_id(db_session=session, cve_id=test_id)
         print(result)
         assert result is not None
 
@@ -77,7 +77,8 @@ class TestCveRouter:
             ]
         }
         try:
-            result = await create_cves(db_session=session, cves=schemas.PostManyCves(**cves))
+            many_cves = schemas.PostManyCves(**cves)
+            result = await create_cves(db_session=session, cves=many_cves)
             print(result)
         except ValidationError as e:
             assert type(e) is ValidationError

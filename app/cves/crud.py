@@ -36,15 +36,10 @@ class CveRepository:
     @staticmethod
     async def create_many(session: AsyncSession, cves: Sequence[Mapping]) -> Sequence[models.CveModel]:
         stmt = insert(models.CveModel).returning(models.CveModel).values(cves)
-        try:
-            result = await session.execute(stmt)
-            await session.commit()
-            results = result.scalars().all()
-            await session.execute(select(models.CveModel).execution_options(populate_existing=True))
-            return results
-        except Exception as e:
-            logging.error(e)
-            await session.rollback()
+        result = await session.execute(stmt)
+        results = result.scalars().all()
+        await session.commit()
+        return results
 
     @staticmethod
     async def get_many(session: AsyncSession, limit: int = 100, offset: int = 0) -> Sequence[models.CveModel]:
